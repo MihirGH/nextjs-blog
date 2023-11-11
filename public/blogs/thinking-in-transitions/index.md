@@ -1,7 +1,7 @@
 ---
 title: Thinking in Transitions and interrputible/concurrent renders
 date: 2023-11-11
-spoiler: What is useTransition, how it can help keep our UIs responsive and how to correctly use isPending returned from useTransition to develop pending UIs
+spoiler: How the new useTransition and useDeferredValue hooks enables the new world of interrputible renders to keep our UIs responsive and how to think about these hooks to use them efficiently
 cta: react
 ---
 

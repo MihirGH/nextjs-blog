@@ -92,3 +92,9 @@ But since `y` is along the shortest path to `u` we can say that, the subpath fro
 Since `u` was chosen before `y` by our algorithm, `d[u] <= d[y]`.
 
 By second observation, `d[u] <= D[y]` and by first observation `D[y] <= D[u]` which implies that `d[u] <= D[u]` -- which is a contradiction to our assumption that `d[u] > D[u]`.
+
+## References
+
+1. [Dijkstra's algorithm - Proof by Heather Guarnera](https://www.youtube.com/watch?v=HXhJIDB6EcM)
+2. [Dijkstra's algorithm - Correctness by Induction](https://web.engr.oregonstate.edu/~glencora/wiki/uploads/dijkstra-proof.pdf)
+3. [Correctness of Dijkstra's algorithm by K. Subramani](https://community.wvu.edu/~krsubramani/courses/fa05/gaoa/qen/dijk.pdf)
