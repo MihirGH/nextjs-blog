@@ -10,8 +10,8 @@ import { Link } from './ui/components/Link'
 import { Posts } from './ui/components/posts'
 
 export default async function Home() {
-  const posts = await getPosts()
-
+  const posts = await getPosts();
+  
   return (
     <div className="flex flex-col">
       <section>
