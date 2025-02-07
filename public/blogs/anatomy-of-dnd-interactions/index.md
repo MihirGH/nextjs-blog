@@ -156,3 +156,190 @@ export const useBulkCellsSelection = () => {
   }
 }
 ```
+
+## Bonus: Adding auto-scroll
+
+In modern web applications, users often interact with large datasets presented in a grid or table format. As the user navigates through the data, they may need to select multiple cells by dragging their mouse cursor. However, when the selection area exceeds the visible boundaries of the container, the user experience can become frustrating. To address this issue, we can implement an auto-scroll feature that seamlessly scrolls the container when the user approaches its edges thus significantly enhancing the user experience.
+
+The `useAutoScroll` hook is designed to automatically scroll a container when the user's mouse cursor approaches its edges. For this, we need to store the scrollable container's `ref`.
+
+The handling of our key events only differs slightly with addition to one more event -- `mousemove`.
+
+- `mousedown` event: No changes needed in how we set the `selectionState` and `isSelectingRef`
+- `mouseover` event: No changes needed in how we set the `selectionState` to update the selection to currently hovered cell.
+- `mousemove` event: Earlier we were not handling this event as to update the selection we only needed to listen to `mouseover` event over cell to update the selection. Now for the autoscroll, we listen to the `mousemove` event as well. When the user starts dragging and moves the mouse around, we check if mouse's current position is near the scrollable container's edges or not. This can be easily determined by `scrollableContainer`'s `getBoundingClientRect` and mouse event's `clientX` and `clientY` properties. If the user is near the edges, we invoke `scrollableContainer.scrollBy` with some appropriate delta. We also perform this check in a `requestAnimationFrame` as the user may not move the mouse once the auto-scroll has started and keep the mouse in that location and would expect the auto-scroll to continue.
+- `mouseup` event: We clear the `requestAnimationFrame` in addition to setting `isSelectingRef.current` to `false`.
+
+Here's how we can implement a simple `useAutoScroll` hook:
+
+```tsx
+import React, { useRef, useCallback } from 'react'
+
+const SCROLL_DELTA = 10
+const VERTICAL_EDGE_THRESHOLD = 60
+const HORIZONTAL_EDGE_THRESHOLD = 60
+
+type TickPosition = {
+  tickLeft: boolean
+  tickRight: boolean
+  tickUp: boolean
+  tickDown: boolean
+}
+
+export type CheckForScroll = (
+  event: React.MouseEvent | MouseEvent,
+  params?: { skipVerticalScroll: boolean; skipHorizontalScroll: boolean }
+) => void
+
+export const useAutoScroll = ({
+  scrollableContainerRef,
+}: {
+  scrollableContainerRef: React.RefObject<HTMLDivElement | null>
+}): {
+  checkForScroll: CheckForScroll
+  clearTicking: () => void
+} => {
+  const scrollRaf = useRef<number | null>(null)
+  const tickPositionRef = useRef<TickPosition | null>(null)
+
+  const startTick = useCallback((): void => {
+    const scrollContainer = scrollableContainerRef.current
+    if (!scrollContainer) return
+
+    const { tickLeft, tickRight, tickUp, tickDown } =
+      tickPositionRef.current ?? {}
+
+    if (tickUp || tickDown) {
+      const multiplier = tickUp ? -1 : 1
+      scrollContainer.scrollBy({ left: 0, top: multiplier * SCROLL_DELTA })
+    }
+
+    if (tickLeft || tickRight) {
+      const multiplier = tickLeft ? -1 : 1
+      scrollContainer.scrollBy({ left: multiplier * SCROLL_DELTA, top: 0 })
+    }
+
+    scrollRaf.current = requestAnimationFrame(startTick)
+  }, [scrollableContainerRef])
+
+  const startScrolling = useCallback((): void => {
+    if (scrollRaf.current) return
+    scrollRaf.current = requestAnimationFrame(startTick)
+  }, [startTick])
+
+  const clearTicking = useCallback((): void => {
+    if (!scrollRaf.current) return
+    window.cancelAnimationFrame(scrollRaf.current)
+    scrollRaf.current = null
+  }, [])
+
+  const checkForScroll: CheckForScroll = useCallback(
+    (mouseEvent, params): void => {
+      const enableHorizontal = !params?.skipHorizontalScroll
+      const enableVertical = !params?.skipVerticalScroll
+
+      const scrollContainer = scrollableContainerRef.current
+      if (!scrollContainer) return
+
+      const rect = scrollContainer.getBoundingClientRect()
+
+      const tickLeft =
+        mouseEvent.clientX < rect.left + HORIZONTAL_EDGE_THRESHOLD &&
+        enableHorizontal
+      const tickRight =
+        mouseEvent.clientX > rect.right - HORIZONTAL_EDGE_THRESHOLD &&
+        enableHorizontal
+      const tickUp =
+        mouseEvent.clientY < rect.top + VERTICAL_EDGE_THRESHOLD &&
+        enableVertical
+      const tickDown =
+        mouseEvent.clientY > rect.bottom - VERTICAL_EDGE_THRESHOLD &&
+        enableVertical
+
+      tickPositionRef.current = {
+        tickLeft,
+        tickRight,
+        tickUp,
+        tickDown,
+      }
+
+      if (tickLeft || tickRight || tickUp || tickDown) {
+        startScrolling()
+      } else {
+        clearTicking()
+      }
+    },
+    [clearTicking, scrollableContainerRef, startScrolling]
+  )
+
+  return { checkForScroll, clearTicking }
+}
+```
+
+Now we just need to invoke the `useAutoScroll` in our grid component, pass it the `scrollableContainerRef` and pass the returned `checkForScroll` and `clearTicking` methods to the `useBulkCellsSelection` hook and wire them up with `mousemove` and `mouseup` event handlers. Here's how we can achieve that:
+
+```ts
+import React, { useState, useRef } from 'react'
+
+import { useAutoScroll } from './hooks/useAutoScroll'
+import { useBulkCellsSelection } from './hooks/useBulkCellsSelection'
+
+const GridComponent = () => {
+  const scrollableContainerRef = useRef<HTMLDivElement | null>(null)
+
+  const { checkForScroll, clearTicking } = useAutoScroll({
+    scrollableContainerRef,
+  })
+
+  const { selectionState } = useBulkCellsSelection({
+    checkForScroll,
+    clearTicking,
+  })
+
+  return (
+    <div
+      ref={scrollableContainerRef}
+      style={{ height: 300, overflowY: 'auto', overflowX: 'auto' }}
+    >
+      <table>{/* Grid or table content */}</table>
+    </div>
+  )
+}
+```
+
+And inside `useBulkCellsSelection`, we just have to add another listener for `mousemove` event:
+
+```ts
+export const useBulkCellsSelection = ({
+  checkForScroll,
+  clearTicking,
+}: ReturnType<typeof useAutoScroll>) => {
+  // existing code for onCellMouseDown and onCellMouseOver...
+  useEffect(() => {
+    // Handle mouseup event to reset isSelectingRef
+    // and also now add cleanup to stop auto-scroll
+    const handleMouseUp = () => {
+      isSelectingRef.current = false
+      clearTicking()
+    }
+
+    // Handle mousemove event to see if auto scroll is needed
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!isSelectingRef.current) return
+      checkForScroll(event)
+    }
+
+    document.addEventListener('mouseup', handleMouseUp)
+    document.addEventListener('mousemove', handleMouseMove)
+
+    return () => {
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.removeEventListener('mousemove', handleMouseMove)
+    }
+  }, [clearTicking])
+
+  // existing code for selection related callbacks...
+}
+```
+
+You can play around with the final version in the [codesandbox](https://codesandbox.io/p/devbox/clickable-data-grid-forked-dr5ffr) here
