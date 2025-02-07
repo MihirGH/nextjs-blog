@@ -343,3 +343,12 @@ export const useBulkCellsSelection = ({
 ```
 
 You can play around with the final version in the [codesandbox](https://codesandbox.io/p/devbox/clickable-data-grid-forked-dr5ffr) here
+
+## Acknowledgements
+
+Special thanks to my colleagues: [Aakash Kumar](https://github.com/CodeThatBreak) and [Priyanshu Shrivastav](https://github.com/convict-git) who are the co-maintainer and co-author of the internal table library along with me at Sprinklr. [Aakash Kumar](https://github.com/CodeThatBreak) integrated the auto-scroll capability in the existing table and brought it to production. We also have taken a lot of inspiration from ag-grid in implementing and integrating bulk selection and auto-scroll in our internal table component that is built on top of `react-virtualized` and `react-table`.
+
+## References
+
+1. [Drag'n'Drop with mouse events -- JavaScript Info](https://javascript.info/mouse-drag-and-drop)
+2. [`autoScrollService` in ag-grid](https://github.com/ag-grid/ag-grid/blob/latest/packages/ag-grid-community/src/autoScrollService.ts)
