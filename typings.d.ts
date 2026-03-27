@@ -3,6 +3,7 @@ type BlogPost = {
   title: string;
   spoiler: string;
   date: string;
+  tags: string[];
 };
 
 type BlogPostWithContent = BlogPost & { content: string };

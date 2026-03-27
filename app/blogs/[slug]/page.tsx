@@ -27,18 +27,33 @@ export default async function BlogPage({
 }: {
   params: { slug: string }
 }) {
-  const { title, spoiler, content, date } = await getPost({ slug })
+  const { title, content, date, tags } = await getPost({ slug })
 
   return (
-    <article>
-      <h1 className="text-3xl font-bold">{title}</h1>
-      <p className="mt-2 text-md text-gray-400 ">
-        Published:{' '}
-        {new Date(date).toLocaleDateString('en', {
-          dateStyle: 'full',
-        })}
-      </p>
-      <section className="prose mt-10">
+    <>
+      <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+
+      <div className="flex items-center gap-3 mt-4">
+        <span className="font-mono text-sm text-muted-foreground">
+          {' '}
+          {new Intl.DateTimeFormat('en-GB', {
+            dateStyle: 'medium',
+          }).format(Date.parse(date))}
+        </span>
+        <span className="text-muted-foreground/30">·</span>
+        <div className="flex gap-2">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="font-mono text-xs bg-tag text-tag-foreground px-2 py-0.5 rounded-sm"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <section className="prose prose-invert mt-8">
         <MDXRemote
           source={content}
           options={{
@@ -49,6 +64,6 @@ export default async function BlogPage({
           }}
         />
       </section>
-    </article>
+    </>
   )
 }

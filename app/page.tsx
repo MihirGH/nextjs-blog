@@ -1,48 +1,27 @@
-//libs
-import Image from 'next/image'
-import NextLink from 'next/link'
-
 //resources
 import { getPosts } from '~/app/lib/blogs'
 
 //components
-import { Link } from './ui/components/Link'
 import { Posts } from './ui/components/posts'
 
 export default async function Home() {
-  const posts = await getPosts();
-  
+  const posts = await getPosts()
+
   return (
     <div className="flex flex-col">
-      <section>
-        <p className="text-3xl font-semibold">Hi, I&apos;m Mihir</p>
-        <section className="flex flex-col mt-4 text-xl gap-1">
-          <p>I am a Software Engineer with expertise in Frontend</p>
-          <p>
-            I mostly tinker around with TypeScript, NextJS, React and GraphQL.
-          </p>
-          <p>I like watching Anime and listening to music.</p>
-          <p className="text-sm text-gray-500">
-            You can find my music logs{' '}
-            <Link
-              href="https://twitter.com/MihirsMusicLog"
-              className="text-blue-400"
-            >
-              here
-            </Link>{' '}
-            and here&apos;s the{' '}
-            <Link
-              href="https://myanimelist.net/profile/MihirGH"
-              className="text-blue-400"
-            >
-              link
-            </Link>{' '}
-            to my MAL profile
-          </p>
-        </section>
-      </section>
-      <section className="mt-10 flex flex-col">
-        <p className="text-3xl font-bold">Blogs</p>
+      <h1 className="text-3xl font-bold tracking-tight mb-3">
+        Hey, I&apos;m Mihir<span className="text-muted-foreground">.</span>
+      </h1>
+      <p className="text-muted-foreground leading-relaxed max-w-xl">
+        Software Engineer focused on Frontend. I tinker with TypeScript,
+        Next.js, React & GraphQL. When I&apos;m not coding, I&apos;m watching
+        anime or listening to music.
+      </p>
+
+      <section className="mt-16">
+        <h2 className="font-mono text-sm text-muted-foreground uppercase tracking-widest mb-8">
+          Blogs
+        </h2>
         <Posts posts={posts} />
       </section>
     </div>

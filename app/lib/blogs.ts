@@ -36,6 +36,7 @@ export async function getPost({
     title: data.title,
     spoiler: data.spoiler,
     date: data.date,
+    tags: data.cta.split(','),
   }
 }
 
@@ -44,8 +45,8 @@ export async function getPosts() {
 
   const fileContents = await Promise.all(
     postSlugs.map((slug) =>
-      readFile(path.join(postsDirectory, slug, 'index.md'), 'utf8')
-    )
+      readFile(path.join(postsDirectory, slug, 'index.md'), 'utf8'),
+    ),
   )
 
   const posts: BlogPost[] = postSlugs.map((slug, i) => {
@@ -53,7 +54,13 @@ export async function getPosts() {
 
     const { data } = matter(fileContent)
 
-    return { slug, title: data.title, spoiler: data.spoiler, date: data.date }
+    return {
+      slug,
+      title: data.title,
+      spoiler: data.spoiler,
+      date: data.date,
+      tags: data.cta.split(','),
+    }
   })
 
   posts.sort((a, b) => {
