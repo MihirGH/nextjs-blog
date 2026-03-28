@@ -13,20 +13,18 @@ export const generateStaticParams = async () => {
   return getAllPostSlugs()
 }
 
-export const generateMetadata = async ({
-  params,
-}: {
-  params: { slug: string }
+export const generateMetadata = async (props: {
+  params: Promise<{ slug: string }>
 }) => {
-  const { title, spoiler } = await getPost({ slug: params.slug })
+  const { slug } = await props.params
+  const { title, spoiler } = await getPost({ slug })
   return { title, description: spoiler }
 }
 
-export default async function BlogPage({
-  params: { slug },
-}: {
-  params: { slug: string }
+export default async function BlogPage(props: {
+  params: Promise<{ slug: string }>
 }) {
+  const { slug } = await props.params
   const { title, content, date, tags } = await getPost({ slug })
 
   return (
